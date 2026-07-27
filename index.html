@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise GenAI Mastery Platform & Certification Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f3ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#1e1b4b',
+                            950: '#0f172a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #080c14;
+            color: #f1f5f9;
+        }
+        
+        code, pre, .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 580px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 280px;
+            max-height: 360px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 320px; }
+        }
+
+        .quest-card {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .quest-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px -6px rgba(99, 102, 241, 0.25);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        .xp-pop {
+            animation: floatUp 1.2s ease-out forwards;
+        }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-35px) scale(1.15); }
+        }
+
+        .glow-active {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.35);
+            border-color: #6366f1 !important;
+            background-color: rgba(30, 27, 75, 0.6) !important;
+        }
+
+        /* 3D Flashcard Flip Effect */
+        .flashcard-inner {
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+        .flashcard-flipped {
+            transform: rotateY(180deg);
+        }
+        .flashcard-front, .flashcard-back {
+            backface-visibility: hidden;
+        }
+        .flashcard-back {
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden">
+
+    <!-- Top Gamified Header -->
+    <header class="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-4 lg:px-8 py-2.5 flex items-center justify-between z-40 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-600 text-white font-black p-2.5 rounded-xl text-base shadow-lg shadow-indigo-500/20">
+                ⚡ GenAI Portal
+            </div>
+            <div>
+                <h1 class="text-xs font-extrabold tracking-wide text-white uppercase flex items-center gap-1.5">
+                    Enterprise Mastery & Certification
+                </h1>
+                <p class="text-[10px] text-slate-400">Interactive Learning Environment for Architects & Strategists</p>
+            </div>
+        </div>
+
+        <!-- Gamification Dashboard Bar -->
+        <div class="flex items-center gap-3 lg:gap-6 text-xs">
+            <!-- Level Display -->
+            <div class="flex items-center gap-2 bg-slate-800/90 px-3 py-1.5 rounded-xl border border-slate-700/80">
+                <span class="text-amber-400 font-bold text-sm">👑 Lvl <span id="user-level">1</span></span>
+                <span class="text-slate-600">|</span>
+                <span class="text-indigo-300 font-extrabold" id="user-rank-title">AI Novice</span>
+            </div>
+
+            <!-- XP Progress -->
+            <div class="hidden sm:flex flex-col items-end gap-1">
+                <div class="flex items-center gap-2 text-[11px]">
+                    <span class="text-slate-400">XP Progress:</span>
+                    <span class="font-bold text-emerald-400 font-mono"><span id="user-xp">0</span> / <span id="next-level-xp">200</span> XP</span>
+                </div>
+                <div class="w-36 bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700">
+                    <div id="xp-bar" class="bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-400 h-full w-0 transition-all duration-500"></div>
+                </div>
+            </div>
+
+            <!-- Badges Counter -->
+            <div class="flex items-center gap-1.5 bg-indigo-950/70 border border-indigo-800/70 px-3 py-1.5 rounded-xl text-indigo-300">
+                <span>🏅 Badges:</span>
+                <span id="badge-count" class="font-bold font-mono text-white">0 / 6</span>
+            </div>
+
+            <button onclick="window.app.resetProgress()" class="text-[10px] text-slate-500 hover:text-slate-300 underline transition">Reset</button>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <div class="flex flex-1 overflow-hidden relative">
+
+        <!-- XP Notification Toast Overlay -->
+        <div id="xp-toast-container" class="fixed top-16 right-8 z-50 pointer-events-none flex flex-col gap-2"></div>
+
+        <!-- Sidebar Navigation (Skill Tree Roadmap) -->
+        <aside class="w-72 bg-slate-900/80 border-r border-slate-800 flex-shrink-0 hidden md:flex flex-col h-full z-20">
+            <div class="p-3.5 border-b border-slate-800/80 bg-slate-950/40 flex items-center justify-between">
+                <h2 class="text-[11px] font-extrabold text-indigo-400 uppercase tracking-wider">Curriculum Skill Tree</h2>
+                <span class="text-[10px] text-slate-500 font-mono">9 Labs Available</span>
+            </div>
+            
+            <nav class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1.5" id="sidebar-nav">
+                <!-- Roadmap Overview -->
+                <button onclick="window.app.switchTab('overview')" id="nav-overview" class="quest-card w-full text-left p-2.5 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-300 hover:border-slate-700 transition flex items-center justify-between">
+                    <div>
+                        <div class="text-[10px] font-bold text-slate-400 uppercase">Hub</div>
+                        <div class="text-xs font-bold text-white mt-0.5">🚀 Platform Architecture</div>
+                    </div>
+                    <span class="text-xs font-mono text-indigo-400">Map</span>
+                </button>
+
+                <div class="my-1 border-t border-slate-800/60"></div>
+
+                <!-- Mod 1 -->
+                <button onclick="window.app.switchTab('mod1')" id="nav-mod1" class="quest-card w-full text-left p-2.5 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-300 hover:border-slate-700 transition flex items-center justify-between">
+                    <div>
+                        <div class="text-[10px] font-bold text-indigo-400 uppercase">Module 1</div>
+                        <div class="text-xs font-bold text-white mt-0.5">⚡ AI & LLM Tech Stack</div>
+                    </div>
+                    <span id="badge-icon-mod1" class="text-sm">🔒</span>
+                </button>
+
+                <!-- Mod 2 -->
+                <button onclick="window.app.switchTab('mod2')" id="nav-mod2" class="quest-card w-full text-left p-2.5 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-300 hover:border-slate-700 transition flex items-center justify-between">
+                    <div>
+                        <div class="text-[10px] font-bold text-indigo-400 uppercase">Module 2</div>
+                        <div class="text-xs font-bold text-white mt-0.5">🎯 Business Strategy</div>
+                    </div>
+                    <span id="badge-icon-mod2" class="text-sm">🔒</span>
+                </button>
+
+                <!-- Mod 3 -->
+                <button onclick="window.app.switchTab('mod3')" id="nav-mod3" class="quest-card w-full text-left p-2.5 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-300 hover:border-slate-700 transition flex items-center justify-between">
+                    <div>
+                        <div class="text-[10px] font-bold text-indigo-400 uppercase">Module 3</div>
+                        <div class="text-xs font-bold text-white mt-0.5">🏗️ Architecture & Delivery</div>
+                    </div>
+                    <span id="badge-icon-mod3" class="text-sm">🔒</span>
+                </button>
+
+                <!-- Mod 4 -->
+                <button onclick="window.app.switchTab('mod4')" id="nav-mod4" class="quest-card w-full text-left p-2.5 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-300 hover:border-slate-700 transition flex items-center justify-between">
+                    <div>
+                        <div class="text-[10px] font-bold text-indigo-400 uppercase">Module 4</div>
+                        <div class="text-xs font-bold text-white mt-0.5">🛡️ Governance & Risk</div>
+                    </div>
+                    <span id="badge-icon-mod4" class="text-sm">🔒</span>
+                </button>
+
+                <!-- Mod 5 -->
+                <button onclick="window.app.switchTab('mod5')" id="nav-mod5" class="quest-card w-full text-left p-2.5 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-300 hover:border-slate-700 transition flex items-center justify-between">
+                    <div>
+                        <div class="text-[10px] font-bold text-indigo-400 uppercase">Module 5</div>
+                        <div class="text-xs font-bold text-white mt-0.5">🚀 Adoption & ROI</div>
+                    </div>
+                    <span id="badge-icon-mod5" class="text-sm">🔒</span>
+                </button>
+
+                <div class="my-1 border-t border-slate-800/60"></div>
+
+                <!-- Tools & Certification -->
+                <button onclick="window.app.switchTab('flashcards')" id="nav-flashcards" class="quest-card w-full text-left p-2.5 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-300 hover:border-slate-700 transition flex items-center justify-between">
+                    <div>
+                        <div class="text-[10px] font-bold text-purple-400 uppercase">Study Tool</div>
+                        <div class="text-xs font-bold text-white mt-0.5">🎴 Flashcard Center</div>
+                    </div>
+                    <span class="text-xs font-mono text-purple-400">25 Cards</span>
+                </button>
+
+                <button onclick="window.app.switchTab('wizard')" id="nav-wizard" class="quest-card w-full text-left p-2.5 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-300 hover:border-slate-700 transition flex items-center justify-between">
+                    <div>
+                        <div class="text-[10px] font-bold text-amber-400 uppercase">Toolbox</div>
+                        <div class="text-xs font-bold text-white mt-0.5">📐 Architect Solution Wizard</div>
+                    </div>
+                    <span class="text-xs font-mono text-amber-400">Config</span>
+                </button>
+
+                <button onclick="window.app.switchTab('exam')" id="nav-exam" class="quest-card w-full text-left p-2.5 rounded-xl border border-indigo-900/80 bg-indigo-950/30 text-slate-300 hover:border-indigo-600 transition flex items-center justify-between">
+                    <div>
+                        <div class="text-[10px] font-bold text-emerald-400 uppercase">Credential</div>
+                        <div class="text-xs font-bold text-white mt-0.5">🎓 Final Exam & Certification</div>
+                    </div>
+                    <span id="badge-icon-exam" class="text-sm">🏆</span>
+                </button>
+            </nav>
+
+            <!-- Player Status Card -->
+            <div class="p-3.5 border-t border-slate-800 bg-slate-950/60">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-sm">
+                        🎓
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-white">Learner Profile</div>
+                        <div class="text-[10px] text-slate-400">Enterprise Architect Track</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Quest Content View -->
+        <main class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-8 lg:p-10 bg-[#080c14]">
+            <div class="max-w-5xl mx-auto pb-24">
+
+                <!-- OVERVIEW / LEARNING HUB SECTION -->
+                <section id="section-overview" class="content-section fade-in hidden">
+                    <div class="mb-8 border-b border-slate-800 pb-6">
+                        <span class="bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-xs font-bold px-2.5 py-1 rounded-lg">Platform Architecture Map</span>
+                        <h2 class="text-3xl font-extrabold text-white mt-3">Enterprise GenAI Platform Ecosystem</h2>
+                        <p class="text-slate-400 text-sm mt-2 leading-relaxed">
+                            Welcome to the Enterprise AI Architecture & Strategy Learning Portal. Explore the full platform boundary below by clicking components, or navigate through the 5 core module quests to build your competency and earn your architect credential.
+                        </p>
+                    </div>
+
+                    <!-- Interactive Architecture Diagram Nodes -->
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 lg:p-8 mb-8">
+                        <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+                            <span>🏛️</span> Interactive Platform Blueprint Node Map
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-center">
+                            <button onclick="window.app.showNodeDetail('ingestion')" class="node-box p-4 bg-slate-950 border border-slate-800 rounded-xl hover:border-indigo-500 text-left transition">
+                                <span class="text-indigo-400 font-bold block mb-1">1. Data Ingestion & OCR</span>
+                                <p class="text-slate-400 text-[11px]">Unstructured document chunking, PDF layout parsing, and dense/sparse vector embedding generation.</p>
+                            </button>
+
+                            <button onclick="window.app.showNodeDetail('guardrails')" class="node-box p-4 bg-slate-950 border border-slate-800 rounded-xl hover:border-indigo-500 text-left transition">
+                                <span class="text-rose-400 font-bold block mb-1">2. Input/Output Guardrails</span>
+                                <p class="text-slate-400 text-[11px]">Prompt injection detection, PII regex masking (Presidio), and document-level metadata RBAC pre-filtering.</p>
+                            </button>
+
+                            <button onclick="window.app.showNodeDetail('orchestrator')" class="node-box p-4 bg-slate-950 border border-slate-800 rounded-xl hover:border-indigo-500 text-left transition">
+                                <span class="text-emerald-400 font-bold block mb-1">3. Agentic Orchestration</span>
+                                <p class="text-slate-400 text-[11px]">Cyclic state graphs (LangGraph), role crews (CrewAI), and Model Context Protocol (MCP) tool bindings.</p>
+                            </button>
+                        </div>
+
+                        <div id="overview-node-detail" class="mt-4 p-4 bg-slate-950 rounded-xl border border-slate-800 text-xs font-mono text-indigo-300 min-h-[70px]">
+                            Select an architectural component above to inspect its design patterns, business benefits, and technology stack...
+                        </div>
+                    </div>
+
+                    <!-- Quick Start Action Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-indigo-950/30 border border-indigo-800/60 p-5 rounded-2xl">
+                            <span class="text-lg block mb-2">⚡</span>
+                            <h4 class="font-bold text-white text-sm mb-1">5 Interactive Quests</h4>
+                            <p class="text-xs text-slate-400 mb-3">Learn AI fundamentals, strategy, architecture, security, and ROI.</p>
+                            <button onclick="window.app.switchTab('mod1')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition">Start Quest 1</button>
+                        </div>
+
+                        <div class="bg-purple-950/30 border border-purple-800/60 p-5 rounded-2xl">
+                            <span class="text-lg block mb-2">🎴</span>
+                            <h4 class="font-bold text-white text-sm mb-1">Flashcard Mastery</h4>
+                            <p class="text-xs text-slate-400 mb-3">Review 25 core concepts, formulas, and terminology cards.</p>
+                            <button onclick="window.app.switchTab('flashcards')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-bold transition">Open Deck</button>
+                        </div>
+
+                        <div class="bg-emerald-950/30 border border-emerald-800/60 p-5 rounded-2xl">
+                            <span class="text-lg block mb-2">🎓</span>
+                            <h4 class="font-bold text-white text-sm mb-1">Architect Certification</h4>
+                            <p class="text-xs text-slate-400 mb-3">Pass the final comprehensive exam to unlock your official credential.</p>
+                            <button onclick="window.app.switchTab('exam')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition">Take Exam</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MODULE 1: AI FUNDAMENTALS & TECHNOLOGY STACK -->
+                <section id="section-mod1" class="content-section fade-in hidden">
+                    <div class="mb-8 border-b border-slate-800 pb-6">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-xs font-bold px-2.5 py-1 rounded-lg">Quest 1</span>
+                            <span class="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-2.5 py-1 rounded-lg">+100 XP Challenge</span>
+                        </div>
+                        <h2 class="text-3xl font-extrabold text-white">AI Fundamentals & Technology Stack</h2>
+                        <p class="text-slate-400 text-sm mt-2 leading-relaxed">
+                            Master the core spectrum of artificial intelligence, understand model adaptation and lifecycle management, simulate context window budgets, and evaluate agentic orchestration frameworks.
+                        </p>
+                    </div>
+
+                    <div class="space-y-8">
+                        <!-- AI Paradigm Matrix with Tech Stack & Real-World Examples -->
+                        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+                            <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+                                <span>🧬</span> 1. The Intelligence Spectrum Map
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+                                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2 flex flex-col justify-between">
+                                    <div>
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-indigo-400 font-bold text-sm">Supervised ML</span>
+                                            <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded">Predictive</span>
+                                        </div>
+                                        <p class="text-slate-400 mb-2">Trains on explicit labeled input-output pairs to predict fixed outcomes.</p>
+                                        <div class="text-[11px] text-slate-300 bg-slate-900 p-2 rounded border border-slate-800">
+                                            <strong>Business Benefit:</strong> High mathematical determinism, sub-50ms latency, and exact auditability.
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 pt-2 border-t border-slate-800/80">
+                                        <div class="text-[10px] text-indigo-300 font-mono">Stack: Scikit-Learn, XGBoost, PyTorch</div>
+                                        <div class="text-[10px] text-emerald-400 font-semibold mt-0.5">Example: Bank Transaction Fraud Scoring</div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2 flex flex-col justify-between">
+                                    <div>
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-indigo-400 font-bold text-sm">Deep Learning</span>
+                                            <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded">Neural Nets</span>
+                                        </div>
+                                        <p class="text-slate-400 mb-2">Multi-layered neural networks extracting features from unstructured media.</p>
+                                        <div class="text-[11px] text-slate-300 bg-slate-900 p-2 rounded border border-slate-800">
+                                            <strong>Business Benefit:</strong> Eliminates manual feature engineering for computer vision & speech.
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 pt-2 border-t border-slate-800/80">
+                                        <div class="text-[10px] text-indigo-300 font-mono">Stack: PyTorch, TensorFlow, OpenCV</div>
+                                        <div class="text-[10px] text-emerald-400 font-semibold mt-0.5">Example: Manufacturing Visual Defect QA</div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2 flex flex-col justify-between">
+                                    <div>
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-indigo-400 font-bold text-sm">Generative AI</span>
+                                            <span class="text-[10px] bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded">Transformers</span>
+                                        </div>
+                                        <p class="text-slate-400 mb-2">Autoregressive foundation models generating text, code, or images.</p>
+                                        <div class="text-[11px] text-slate-300 bg-slate-900 p-2 rounded border border-slate-800">
+                                            <strong>Business Benefit:</strong> 90% faster draft response generation & document summarization.
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 pt-2 border-t border-slate-800/80">
+                                        <div class="text-[10px] text-indigo-300 font-mono">Stack: GPT-4o, Claude 3.5, vLLM</div>
+                                        <div class="text-[10px] text-emerald-400 font-semibold mt-0.5">Example: Telecom Support Draft Automation</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 bg-indigo-950/30 border border-indigo-800/60 p-4 rounded-xl text-xs">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-emerald-400 font-extrabold text-sm">Agentic AI Ecosystems</span>
+                                    <span class="text-[10px] bg-emerald-950 text-emerald-300 font-bold px-2.5 py-0.5 rounded border border-emerald-800">Autonomous Workflow Engine</span>
+                                </div>
+                                <p class="text-slate-300 mb-2">Combines LLM reasoning with state machines, short/long-term memory, and dynamic tool calls (APIs, SQL databases, ERP systems).</p>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2 text-[11px]">
+                                    <div class="bg-slate-950 p-2 rounded border border-slate-800">
+                                        <strong class="text-indigo-300">Tech Stack:</strong> <span class="font-mono text-slate-300">LangGraph, CrewAI, AutoGen, FastMCP, Qdrant, LiteLLM</span>
+                                    </div>
+                                    <div class="bg-slate-950 p-2 rounded border border-slate-800">
+                                        <strong class="text-emerald-400">Enterprise Impact:</strong> <span class="text-slate-300">70-80% end-to-end insurance claim triage & payout containment.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fine-Tuning & Lifecycle Breakdown -->
+                        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+                            <h3 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+                                <span>🔄</span> 2. Foundation Models, Fine-Tuning & Lifecycle Management
+                            </h3>
+                            <p class="text-xs text-slate-400 mb-4">Navigating model adaptation strategies across pre-training, fine-tuning, alignment, and RAG.</p>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                                    <span class="text-indigo-400 font-bold block text-sm">Pre-Training (Base Models)</span>
+                                    <p class="text-slate-400">Broad world knowledge learned from trillions of web tokens. High cost ($10M+), provided by foundation model vendors.</p>
+                                    <div class="text-[10px] text-slate-500 font-mono border-t border-slate-800 pt-2">
+                                        Tech: Megatron-LM, AWS Bedrock
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                                    <span class="text-indigo-400 font-bold block text-sm">Supervised Fine-Tuning (SFT / LoRA)</span>
+                                    <p class="text-slate-400">Adapts model weights on specialized Q&A pairs to enforce legal/medical terminology and strict JSON outputs.</p>
+                                    <div class="text-[10px] text-slate-500 font-mono border-t border-slate-800 pt-2">
+                                        Tech: Unsloth, Hugging Face TRL, Axolotl
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                                    <span class="text-indigo-400 font-bold block text-sm">Human Alignment (DPO / RLHF)</span>
+                                    <p class="text-slate-400">Aligns generation with human preference criteria to penalize toxic responses and brand-damaging hallucinations.</p>
+                                    <div class="text-[10px] text-slate-500 font-mono border-t border-slate-800 pt-2">
+                                        Tech: Alignment Handbook, Label Studio
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Interactive Context Window Simulator -->
+                        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+                            <h3 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+                                <span>🎛️</span> 3. Context Window & Token Budget Simulator
+                            </h3>
+                            <p class="text-xs text-slate-400 mb-4">Simulate prompt context window occupancy across leading foundation models.</p>
+
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs">
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-slate-300 font-semibold mb-1">Sample Prompt Text</label>
+                                        <textarea id="token-input" rows="3" oninput="window.app.simTokenizer()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 font-mono outline-none focus:border-indigo-500">Analyze customer policy contract #POL-9921, extract flood coverage clauses, and format structured JSON.</textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-slate-300 font-semibold mb-1">Target Foundation Model</label>
+                                        <select id="token-model" onchange="window.app.simTokenizer()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200">
+                                            <option value="128000">GPT-4o (128k Context Limit)</option>
+                                            <option value="200000">Claude 3.5 Sonnet (200k Context Limit)</option>
+                                            <option value="1000000">Gemini 1.5 Pro (1M Context Limit)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex flex-col justify-between">
+                                    <div class="space-y-2">
+                                        <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider block">Context Budget Breakdown</span>
+                                        <div class="text-slate-300 space-y-1">
+                                            <div>Estimated Tokens: <strong id="sim-token-count" class="text-emerald-400 font-mono text-sm">21</strong></div>
+                                            <div>Character Count: <strong id="sim-char-count" class="text-white font-mono">105</strong></div>
+                                            <div>Context Occupancy: <strong id="sim-context-pct" class="text-indigo-400 font-mono">0.016%</strong></div>
+                                        </div>
+                                    </div>
+                                    <div class="pt-3 border-t border-slate-800 text-[11px] text-slate-500">
+                                        Note: System prompts, retrieved RAG context, and tool schemas share this context window.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Prompting & Orchestration Explorer -->
+                        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+                            <h3 class="text-base font-bold text-white mb-3 flex items-center gap-2">
+                                <span>⚙️</span> 4. Frameworks & Prompting Paradigms
+                            </h3>
+                            <div class="flex border-b border-slate-800 mb-4 bg-slate-950 p-1 rounded-xl">
+                                <button onclick="window.app.switchPrompting('chain')" id="tab-chain" class="flex-1 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white">Prompt Chaining</button>
+                                <button onclick="window.app.switchPrompting('tot')" id="tab-tot" class="flex-1 py-2 text-xs font-medium rounded-lg text-slate-400">Tree-of-Thought</button>
+                                <button onclick="window.app.switchPrompting('react')" id="tab-react" class="flex-1 py-2 text-xs font-medium rounded-lg text-slate-400">ReAct Framework</button>
+                            </div>
+                            <div id="prompting-display" class="p-4 bg-slate-950 rounded-xl text-xs font-mono text-indigo-300 min-h-[100px]"></div>
+                        </div>
+
+                        <!-- Module Assessment Quiz -->
+                        <div class="bg-gradient-to-br from-indigo-950/80 to-slate-900 border border-indigo-800/80 rounded-2xl p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-bold text-white text-base">Module 1 Knowledge Check</h4>
+                                <span class="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full">+100 XP</span>
+                            </div>
+                            <p class="text-xs text-slate-300 mb-4">Which prompting paradigm allows an AI agent to evaluate multiple reasoning branches before selecting the optimal action path?</p>
+                            
+                            <div class="space-y-2 text-xs mb-4">
+                                <label class="flex items-center gap-3 p-3 bg-slate-950/80 rounded-xl border border-slate-800 hover:border-slate-700 cursor-pointer">
+                                    <input type="radio" name="q1" value="0" class="text-indigo-600">
+                                    <span class="text-slate-300">Zero-Shot System Prompting</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-950/80 rounded-xl border border-slate-800 hover:border-slate-700 cursor-pointer">
+                                    <input type="radio" name="q1" value="1" class="text-indigo-600">
+                                    <span class="text-slate-300">Tree-of-Thought (ToT) Framework</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-950/80 rounded-xl border border-slate-800 hover:border-slate-700 cursor-pointer">
+                                    <input type="radio" name="q1" value="2" class="text-indigo-600">
+                                    <span class="text-slate-300">Basic Chat Completion</span>
+                                </label>
+                            </div>
+
+                            <button onclick="window.app.submitQuiz(1, 1)" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs transition">Submit Answer</button>
+                            <div id="quiz-mod1-result" class="mt-3 text-xs hidden"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MODULE 2: BUSINESS STRATEGY & USE-CASE MAPPING -->
+                <section id="section-mod2" class="content-section fade-in hidden">
+                    <div class="mb-8 border-b border-slate-800 pb-6">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-xs font-bold px-2.5 py-1 rounded-lg">Quest 2</span>
+                            <span class="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-2.5 py-1 rounded-lg">+100 XP Challenge</span>
+                        </div>
+                        <h2 class="text-3xl font-extrabold text-white">Business Strategy & Use-Case Mapping</h2>
+                        <p class="text-slate-400 text-sm mt-2 leading-relaxed">
+                            Identify high-value business processes viable for automation, evaluate feasibility, and position native agentic platforms effectively.
+                        </p>
+                    </div>
+
+                    <div class="space-y-8">
+                        <!-- Use Case Assessment Scorer -->
+                        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+                            <h3 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+                                <span>📊</span> AI Opportunity Feasibility Scorer
+                            </h3>
+                            <p class="text-xs text-slate-400 mb-4">Evaluate a enterprise client's use case for AI readiness. Select all criteria that apply:</p>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs mb-6">
+                                <label class="flex items-center gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer hover:border-slate-700">
+                                    <input type="checkbox" class="opp-check w-4 h-4 text-indigo-600 rounded" value="20" checked>
+                                    <span class="text-slate-300">High volume of structured or recurring operational data</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer hover:border-slate-700">
+                                    <input type="checkbox" class="opp-check w-4 h-4 text-indigo-600 rounded" value="20" checked>
+                                    <span class="text-slate-300">Clear baseline metrics available (handle time & labor costs)</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer hover:border-slate-700">
+                                    <input type="checkbox" class="opp-check w-4 h-4 text-indigo-600 rounded" value="20">
+                                    <span class="text-slate-300">Data security pre-approval for platform & VPC access</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer hover:border-slate-700">
+                                    <input type="checkbox" class="opp-check w-4 h-4 text-indigo-600 rounded" value="20" checked>
+                                    <span class="text-slate-300">APIs or database connections exist for agent tool calls</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer hover:border-slate-700">
+                                    <input type="checkbox" class="opp-check w-4 h-4 text-indigo-600 rounded" value="20">
+                                    <span class="text-slate-300">Designated business SME available to validate system testing</span>
+                                </label>
+                            </div>
+
+                            <div class="p-4 bg-indigo-950/40 border border-indigo-800/60 rounded-xl flex items-center justify-between">
+                                <div>
+                                    <span class="text-[10px] text-indigo-400 font-bold uppercase tracking-wider block">Use Case Viability Score:</span>
+                                    <span id="opp-score-text" class="text-lg font-extrabold text-white font-mono">60% - Moderate Opportunity</span>
+                                </div>
+                                <div class="w-36 bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                                    <div id="opp-score-bar" class="bg-indigo-500 h-full w-[60%] transition-all duration-300"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Module 2 Quiz -->
+                        <div class="bg-gradient-to-br from-indigo-950/80 to-slate-900 border border-indigo-800/80 rounded-2xl p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-bold text-white text-base">Module 2 Knowledge Check</h4>
+                                <span class="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full">+100 XP</span>
+                            </div>
+                            <p class="text-xs text-slate-300 mb-4">Why is assessing API or Database availability crucial during initial use-case discovery for Agentic AI?</p>
+                            
+                            <div class="space-y-2 text-xs mb-4">
+                                <label class="flex items-center gap-3 p-3 bg-slate-950/80 rounded-xl border border-slate-800 hover:border-slate-700 cursor-pointer">
+                                    <input type="radio" name="q2" value="0" class="text-indigo-600">
+                                    <span class="text-slate-300">Because agents require APIs to generate text completion outputs.</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-950/80 rounded-xl border border-slate-800 hover:border-slate-700 cursor-pointer">
+                                    <input type="radio" name="q2" value="1" class="text-indigo-600">
+                                    <span class="text-slate-300">Because autonomous agents rely on tool interfaces to execute tangible actions in enterprise software.</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-950/80 rounded-xl border border-slate-800 hover:border-slate-700 cursor-pointer">
+                                    <input type="radio" name="q2" value="2" class="text-indigo-600">
+                                    <span class="text-slate-300">It is only required for training foundational weights.</span>
+                                </label>
+                            </div>
+
+                            <button onclick="window.app.submitQuiz(2, 1)" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs transition">Submit Answer</button>
+                            <div id="quiz-mod2-result" class="mt-3 text-xs hidden"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MODULE 3: SOLUTION ARCHITECTURE & TECHNICAL DELIVERY -->
+                <section id="section-mod3" class="content-section fade-in hidden">
+                    <div class="mb-8 border-b border-slate-800 pb-6">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-xs font-bold px-2.5 py-1 rounded-lg">Quest 3</span>
+                            <span class="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-2.5 py-1 rounded-lg">+100 XP Challenge</span>
+                        </div>
+                        <h2 class="text-3xl font-extrabold text-white">Solution Architecture & Delivery</h2>
+                        <p class="text-slate-400 text-sm mt-2 leading-relaxed">
+                            Design resilient data pipelines, deploy across major cloud platforms, and evaluate architecture trade-offs.
+                        </p>
+                    </div>
+
+                    <div class="space-y-8">
+                        <!-- Tool Calling Trace Simulator -->
+                        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+                            <h3 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+                                <span>⚡</span> 1. Agent Tool Execution Trace
+                            </h3>
+                            <p class="text-xs text-slate-400 mb-4">Simulate how an agent decides to invoke an external database tool.</p>
+
+                            <div class="bg-slate-950 rounded-xl p-4 font-mono text-xs text-indigo-300 space-y-2 relative min-h-[140px] border border-slate-800">
+                                <div id="trace-step-1" class="hidden">🤖 <span class="text-slate-200">Agent Reasoning:</span> "Customer query requires checking Q3 balance."</div>
+                                <div id="trace-step-2" class="hidden text-amber-400">⚡ <span class="text-slate-200">Tool Invoked:</span> query_sql(id="CUST-8812")</div>
+                                <div id="trace-step-3" class="hidden text-emerald-400">✅ <span class="text-slate-200">Database Observation:</span> {"balance_usd": 14200.00}</div>
+                                <div id="trace-step-4" class="hidden text-indigo-300 font-bold">🧠 <span class="text-slate-200">Final Response:</span> "Customer balance is $14,200.00."</div>
+
+                                <button onclick="window.app.runToolTrace()" class="mt-3 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-sans text-xs font-bold">Run Tool Trace</button>
+                            </div>
+                        </div>
+
+                        <!-- Architecture Radar Chart -->
+                        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+                            <h3 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+                                <span>📈</span> 2. Architectural Trade-offs Matrix
+                            </h3>
+                            <div class="chart-container">
+                                <canvas id="tradeoffChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Module 3 Quiz -->
+                        <div class="bg-gradient-to-br from-indigo-950/80 to-slate-900 border border-indigo-800/80 rounded-2xl p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-bold text-white text-base">Module 3 Knowledge Check</h4>
+                                <span class="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full">+100 XP</span>
+                            </div>
+                            <p class="text-xs text-slate-300 mb-4">How do Large Language Models securely trigger actions in external enterprise databases?</p>
+                            
+                            <div class="space-y-2 text-xs mb-4">
+                                <label class="flex items-center gap-3 p-3 bg-slate-950/80 rounded-xl border border-slate-800 hover:border-slate-700 cursor-pointer">
+                                    <input type="radio" name="q3" value="0" class="text-indigo-600">
+                                    <span class="text-slate-300">By sending raw hardware signals directly to server memory.</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-950/80 rounded-xl border border-slate-800 hover:border-slate-700 cursor-pointer">
+                                    <input type="radio" name="q3" value="1" class="text-indigo-600">
+                                    <span class="text-slate-300">By emitting structured JSON schema payloads matching function definitions for the orchestrator to execute.</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-950/80 rounded-xl border border-slate-800 hover:border-slate-700 cursor-pointer">
+                                    <input type="radio" name="q3" value="2" class="text-indigo-600">
+                                    <span class="text-slate-300">They inherently store all enterprise database rows inside their model weights.</span>
+                                </label>
+                            </div>
+
+                            <button onclick="window.app.submitQuiz(3, 1)" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs transition">Submit Answer</button>
+                            <div id="quiz-mod3-result" class="mt-3 text-xs hidden"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MODULE 4: GOVERNANCE, ETHICS, & RISK -->
+                <section id="section-mod4" class="content-section fade-in hidden">
+                    <div class="mb-8 border-b border-slate-800 pb-6">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-xs font-bold px-2.5 py-1 rounded-lg">Quest 4</span>
+                            <span class="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-2.5 py-1 rounded-lg">+100 XP Challenge</span>
+                        </div>
+                        <h2 class="text-3xl font-extrabold text-white">Governance, Ethics, & Risk</h2>
+                        <p class="text-slate-400 text-sm mt-2 leading-relaxed">
+                            Implement Responsible AI guardrails, navigate regulatory compliance, and defend architectures against security pushback.
+                        </p>
+                    </div>
+
+                    <div class="space-y-8">
+                        <!-- CISO Boss Fight Challenge -->
+                        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+                            <h3 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+                                <span>🛡️</span> CISO Security Defense Challenger
+                            </h3>
+                            <p class="text-xs text-slate-400 mb-4">Click a security objection card to deploy the correct architectural mitigation:</p>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs mb-4">
+                                <button onclick="window.app.showObjection('privacy')" class="p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-slate-700 transition text-left font-bold text-slate-200">
+                                    🔒 "Will our data train public models?"
+                                </button>
+                                <button onclick="window.app.showObjection('injection')" class="p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-slate-700 transition text-left font-bold text-slate-200">
+                                    🛑 "How do you block prompt injection?"
+                                </button>
+                                <button onclick="window.app.showObjection('compliance')" class="p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-slate-700 transition text-left font-bold text-slate-200">
+                                    ⚖️ "What about the EU AI Act?"
+                                </button>
+                            </div>
+
+                            <div id="objection-answer-box" class="p-4 bg-slate-950 rounded-xl text-xs text-indigo-300 border border-slate-800 min-h-[70px]">
+                                Select a CISO objection above to reveal the counter-strategy...
+                            </div>
+                        </div>
+
+                        <!-- Module 4 Quiz -->
+                        <div class="bg-gradient-to-br from-indigo-950/80 to-slate-900 border border-indigo-800/80 rounded-2xl p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-bold text-white text-base">Module 4 Knowledge Check</h4>
+                                <span class="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full">+100 XP</span>
+                            </div>
+                            <p class="text-xs text-slate-300 mb-4">Where should Role-Based Access Control (RBAC) be securely enforced in an enterprise RAG system?</p>
+                            
+                            <div class="space-y-2 text-xs mb-4">
+                                <label class="flex items-center gap-3 p-3 bg-slate-950/80 rounded-xl border border-slate-800 hover:border-slate-700 cursor-pointer">
+                                    <input type="radio" name="q4" value="0" class="text-indigo-600">
+                                    <span class="text-slate-300">Prompting the LLM to ignore unauthorized questions.</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-950/80 rounded-xl border border-slate-800 hover:border-slate-700 cursor-pointer">
+                                    <input type="radio" name="q4" value="1" class="text-indigo-600">
+                                    <span class="text-slate-300">At the Vector Database layer via metadata pre-filters matching the user's authenticated identity.</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-950/80 rounded-xl border border-slate-800 hover:border-slate-700 cursor-pointer">
+                                    <input type="radio" name="q4" value="2" class="text-indigo-600">
+                                    <span class="text-slate-300">In the browser UI after fetching all documents.</span>
+                                </label>
+                            </div>
+
+                            <button onclick="window.app.submitQuiz(4, 1)" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs transition">Submit Answer</button>
+                            <div id="quiz-mod4-result" class="mt-3 text-xs hidden"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MODULE 5: IMPLEMENTATION, ADOPTION, & CHANGE MANAGEMENT -->
+                <section id="section-mod5" class="content-section fade-in hidden">
+                    <div class="mb-8 border-b border-slate-800 pb-6">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-xs font-bold px-2.5 py-1 rounded-lg">Quest 5</span>
+                            <span class="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-2.5 py-1 rounded-lg">+100 XP Challenge</span>
+                        </div>
+                        <h2 class="text-3xl font-extrabold text-white">Adoption, Change Management & ROI</h2>
+                        <p class="text-slate-400 text-sm mt-2 leading-relaxed">
+                            Drive organizational change, model total cost of ownership, and track performance with system telemetry.
+                        </p>
+                    </div>
+
+                    <div class="space-y-8">
+                        <!-- TCO & ROI Modeler -->
+                        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+                            <h3 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+                                <span>💵</span> 1. Interactive Commercial TCO Modeler
+                            </h3>
+                            <p class="text-xs text-slate-400 mb-4">Calculate annual labor savings versus estimated token inference spend.</p>
+
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs">
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-slate-300 font-semibold mb-1">Daily Task Volume</label>
+                                        <input type="number" id="gtm-q" value="1000" oninput="window.app.calcTco()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200 font-mono">
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label class="block text-slate-300 font-semibold mb-1">Handle Time (Mins)</label>
+                                            <input type="number" id="gtm-ht" value="10" oninput="window.app.calcTco()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200 font-mono">
+                                        </div>
+                                        <div>
+                                            <label class="block text-slate-300 font-semibold mb-1">Labor Rate ($/hr)</label>
+                                            <input type="number" id="gtm-rate" value="35" oninput="window.app.calcTco()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200 font-mono">
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label class="block text-slate-300 font-semibold mb-1">Containment (%)</label>
+                                            <input type="number" id="gtm-contain" value="50" oninput="window.app.calcTco()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200 font-mono">
+                                        </div>
+                                        <div>
+                                            <label class="block text-slate-300 font-semibold mb-1">Tokens / Task</label>
+                                            <input type="number" id="gtm-tokens" value="2000" oninput="window.app.calcTco()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200 font-mono">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex flex-col justify-between space-y-3">
+                                    <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider block">Financial Projection Summary</span>
+                                    <div class="flex justify-between items-center text-xs">
+                                        <span class="text-slate-400">Gross Labor Saved:</span>
+                                        <span id="res-labor" class="font-bold text-emerald-400 font-mono text-sm">$0</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-xs">
+                                        <span class="text-slate-400">Est. Annual Inference Cost:</span>
+                                        <span id="res-token" class="font-bold text-rose-400 font-mono text-sm">$0</span>
+                                    </div>
+                                    <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
+                                        <span class="font-bold text-white">Net ROI Multiplier:</span>
+                                        <span id="res-roi" class="font-extrabold text-indigo-400 font-mono text-base">0x</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System Containment Doughnut Chart -->
+                        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+                            <h3 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+                                <span>🎯</span> 2. Telemetry KPI: Containment Rate
+                            </h3>
+                            <div class="chart-container">
+                                <canvas id="containmentChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Module 5 Quiz -->
+                        <div class="bg-gradient-to-br from-indigo-950/80 to-slate-900 border border-indigo-800/80 rounded-2xl p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-bold text-white text-base">Module 5 Knowledge Check</h4>
+                                <span class="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full">+100 XP</span>
+                            </div>
+                            <p class="text-xs text-slate-300 mb-4">What metric measures the percentage of user workflows fully resolved end-to-end by an autonomous agent without human escalation?</p>
+                            
+                            <div class="space-y-2 text-xs mb-4">
+                                <label class="flex items-center gap-3 p-3 bg-slate-950/80 rounded-xl border border-slate-800 hover:border-slate-700 cursor-pointer">
+                                    <input type="radio" name="q5" value="0" class="text-indigo-600">
+                                    <span class="text-slate-300">Tokens Per Second</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-950/80 rounded-xl border border-slate-800 hover:border-slate-700 cursor-pointer">
+                                    <input type="radio" name="q5" value="1" class="text-indigo-600">
+                                    <span class="text-slate-300">Containment Rate</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-950/80 rounded-xl border border-slate-800 hover:border-slate-700 cursor-pointer">
+                                    <input type="radio" name="q5" value="2" class="text-indigo-600">
+                                    <span class="text-slate-300">Inference Latency</span>
+                                </label>
+                            </div>
+
+                            <button onclick="window.app.submitQuiz(5, 1)" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs transition">Submit Answer</button>
+                            <div id="quiz-mod5-result" class="mt-3 text-xs hidden"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- FLASHCARD STUDY CENTER SECTION -->
+                <section id="section-flashcards" class="content-section fade-in hidden">
+                    <div class="mb-6 border-b border-slate-800 pb-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-bold px-2.5 py-1 rounded-lg">Study Center</span>
+                                <h2 class="text-2xl font-extrabold text-white mt-2">Interactive Flashcards Deck</h2>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xs text-slate-400">Mastery Progress:</div>
+                                <div id="flashcard-progress-text" class="text-sm font-bold text-purple-400 font-mono">0 / 25 Mastered</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Flashcard Interface Wrapper -->
+                    <div class="max-w-xl mx-auto space-y-6">
+                        <div class="perspective-1000">
+                            <div id="flashcard-box" onclick="window.app.flipCard()" class="flashcard-inner w-full min-h-[220px] bg-slate-900 border-2 border-indigo-600/60 rounded-2xl p-6 text-center cursor-pointer relative shadow-2xl flex flex-col justify-between">
+                                <div class="text-[10px] uppercase font-bold tracking-widest text-indigo-400 flex items-center justify-between">
+                                    <span id="card-index-label">Card 1 of 25</span>
+                                    <span class="text-slate-500">Click to Flip 🔄</span>
+                                </div>
+                                <div id="card-front-text" class="text-lg font-bold text-white my-auto p-4">
+                                    Loading Flashcards...
+                                </div>
+                                <div id="card-back-text" class="text-sm text-slate-200 leading-relaxed my-auto p-4 hidden">
+                                    Back answer text...
+                                </div>
+                                <div class="text-[10px] text-slate-500 italic">
+                                    [Front] Recall concept before flipping
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Controls -->
+                        <div class="flex items-center justify-between gap-3">
+                            <button onclick="window.app.prevCard()" class="px-4 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 rounded-xl text-xs font-bold">← Prev</button>
+                            
+                            <button onclick="window.app.toggleMastery()" id="btn-mastered" class="px-5 py-2 bg-emerald-950/60 border border-emerald-800 text-emerald-300 rounded-xl text-xs font-bold hover:bg-emerald-900/60 transition">
+                                🌟 Mark Mastered (+10 XP)
+                            </button>
+
+                            <button onclick="window.app.nextCard()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold">Next →</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ARCHITECT SOLUTION WIZARD -->
+                <section id="section-wizard" class="content-section fade-in hidden">
+                    <div class="mb-6 border-b border-slate-800 pb-4">
+                        <span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold px-2.5 py-1 rounded-lg">Interactive Tool</span>
+                        <h2 class="text-2xl font-extrabold text-white mt-2">Architect Solution Wizard</h2>
+                        <p class="text-slate-400 text-xs mt-1">Configure client business requirements to generate a custom technical architecture recommendation.</p>
+                    </div>
+
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                            <div>
+                                <label class="block text-slate-300 font-bold mb-1">Target End-to-End Latency SLA</label>
+                                <select id="wiz-latency" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200">
+                                    <option value="realtime">Real-time (< 1.5s)</option>
+                                    <option value="async">Asynchronous / Batch Background Process</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-slate-300 font-bold mb-1">Data Privacy Security Level</label>
+                                <select id="wiz-security" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200">
+                                    <option value="cloud">Enterprise Public Cloud (Zero Data Retention)</option>
+                                    <option value="vpc">Isolated Dedicated VPC / On-Prem Managed Gateway</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-slate-300 font-bold mb-1">Primary Task Complexity</label>
+                                <select id="wiz-complexity" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200">
+                                    <option value="rag">Single-pass Document Q&A Retrieval</option>
+                                    <option value="multiagent">Multi-step Stateful Tool Execution & Human Approval</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-slate-300 font-bold mb-1">Data Structure Primary Source</label>
+                                <select id="wiz-data" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200">
+                                    <option value="unstructured">Unstructured PDFs / Scanned Contracts</option>
+                                    <option value="relational">Relational SQL Databases & Knowledge Graphs</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button onclick="window.app.generateBlueprint()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-slate-950 font-black rounded-xl text-xs uppercase tracking-wider transition">Generate Tailored Architecture Blueprint (+25 XP)</button>
+
+                        <div id="wizard-output" class="p-4 bg-slate-950 rounded-xl border border-slate-800 text-xs font-mono text-amber-300 space-y-2 hidden"></div>
+                    </div>
+                </section>
+
+                <!-- FINAL CERTIFICATION EXAM -->
+                <section id="section-exam" class="content-section fade-in hidden">
+                    <div class="mb-6 border-b border-slate-800 pb-4">
+                        <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold px-2.5 py-1 rounded-lg">Official Capstone</span>
+                        <h2 class="text-2xl font-extrabold text-white mt-2">Enterprise GenAI Architect Exam</h2>
+                        <p class="text-slate-400 text-xs mt-1">Pass the 5-question capstone exam with >=80% score to earn your official Architect Certificate.</p>
+                    </div>
+
+                    <div id="exam-container" class="space-y-6">
+                        <!-- Questions rendered via JS -->
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Application JavaScript Engine -->
+    <script>
+        const app = {
+            activeTab: 'overview',
+            userXp: 0,
+            userLevel: 1,
+            completedQuizzes: {},
+            chartsInitialized: { tradeoff: false, containment: false },
+
+            ranks: [
+                "AI Novice",
+                "Prompt Specialist",
+                "Agentic Architect",
+                "Enterprise Strategist",
+                "GenAI Master Architect",
+                "Chief AI Architect"
+            ],
+
+            // 25 Flashcards Deck Data
+            flashcards: [
+                { f: "Mathematical goal of Discriminative ML", b: "Predicts fixed target label Y given features X, modeling P(Y|X)." },
+                { f: "Mathematical goal of Generative AI", b: "Autoregressive sequence continuation predicting next tokens P(X_n | X_1...X_n-1)." },
+                { f: "Mathematical goal of Agentic AI", b: "Goal-directed policy execution selecting actions given state." },
+                { f: "Supervised Fine-Tuning (SFT / LoRA)", b: "Updating model weights on domain Q&A pairs to enforce terminology and JSON format." },
+                { f: "Direct Preference Optimization (DPO)", b: "Aligning generation with human preferences to penalize toxic outputs." },
+                { f: "Retrieval-Augmented Generation (RAG)", b: "Injecting proprietary context into prompts while keeping weights static." },
+                { f: "LangGraph Primary Paradigm", b: "Orchestrating stateful agents via Cyclic State Graphs with checkpointing." },
+                { f: "CrewAI Primary Paradigm", b: "Orchestrating agents using role-based collaboration and task delegation." },
+                { f: "AutoGen Primary Paradigm", b: "Multi-agent conversational dialogues for peer review and debugging." },
+                { f: "Model Context Protocol (MCP)", b: "Open standard connecting AI host applications to database tools and resources." },
+                { f: "Metrics (M) in MEDDPICC for AI", b: "Baseline handle times, error rates, wait times, and human labor costs." },
+                { f: "Native Agent Platform Advantage", b: "Offers stateful multi-agent orchestration, MCP integration, and RBAC pre-filtering." },
+                { f: "Hybrid Search in RAG", b: "Combining dense semantic vector search with sparse keyword search (BM25)." },
+                { f: "Reciprocal Rank Fusion (RRF)", b: "Scoring technique merging and re-ranking candidates from multiple retrievers." },
+                { f: "Cross-Encoder Reranking", b: "Second-stage model deep-scoring initial candidates to select grounded context." },
+                { f: "Databricks Mosaic AI Key Capability", b: "Unity Catalog Vector Search and data lakehouse governance for open models." },
+                { f: "Guardrail Execution Chain Sequence", b: "Input Guardrail -> Vector RBAC -> LLM Inference -> Output Guardrail." },
+                { f: "Function of Input Guardrail", b: "Detecting prompt injection attempts and sanitizing sensitive PII." },
+                { f: "Function of Output Guardrail", b: "Checking hallucination grounding, toxicity, and schema compliance." },
+                { f: "Document-Level RBAC Metadata Filtering", b: "Filtering vector database results using user identity claims before prompt synthesis." },
+                { f: "EU AI Act High Risk Tier Requirement", b: "Mandates strict technical audits, risk mitigation, and human oversight." },
+                { f: "Phase 1 Progressive Autonomy: Copilot", b: "Agents propose draft answers; human operators manually verify and execute." },
+                { f: "Phase 2 Progressive Autonomy: Human-in-the-Loop", b: "Agents execute routine actions automatically; human approves high-risk tasks." },
+                { f: "Phase 3 Progressive Autonomy: Containment", b: "Full end-to-end execution for verified intent categories, escalating exceptions." },
+                { f: "OpenTelemetry in Agentic AI", b: "Standard for tracking system metrics like containment counters and latency histograms." }
+            ],
+            currentCardIdx: 0,
+            cardFlipped: false,
+            masteredCards: new Set(),
+
+            // Exam Questions Dataset
+            examQuestions: [
+                { q: "What is the primary function of an Input Guardrail layer in an enterprise agent system?", options: ["Compiling C++ binaries", "Blocking indirect prompt injections and redacting sensitive PII", "Executing vector similarity calculations"], correct: 1 },
+                { q: "Which framework is explicitly designed around cyclic state graphs for Human-in-the-Loop workflows?", options: ["LangChain", "LangGraph", "Standard ChatGPT Web"], correct: 1 },
+                { q: "Where must Document-Level RBAC be enforced in a RAG pipeline?", options: ["In system prompts", "At the Vector Store layer via metadata pre-filters before prompt context injection", "In JavaScript on the user browser"], correct: 1 },
+                { q: "What metric measures the percentage of user tasks resolved end-to-end without human intervention?", options: ["Tokens Per Second", "Containment Rate", "Cosine Distance"], correct: 1 },
+                { q: "How do LLMs invoke external tools like SQL queries?", options: ["By emitting structured JSON matching tool schemas for the orchestrator to execute", "By compiling VRAM code", "By generating network packets directly"], correct: 0 }
+            ],
+
+            init: function() {
+                this.switchTab('overview');
+                this.simTokenizer();
+                this.switchPrompting('chain');
+                this.calcTco();
+                this.calcOpportunityScore();
+                this.renderFlashcard();
+                this.renderExam();
+            },
+
+            switchTab: function(tabId) {
+                this.activeTab = tabId;
+                
+                document.querySelectorAll('.content-section').forEach(sec => {
+                    sec.classList.add('hidden');
+                    sec.classList.remove('block');
+                });
+                
+                const targetSec = document.getElementById('section-' + tabId);
+                if (targetSec) {
+                    targetSec.classList.remove('hidden');
+                    targetSec.classList.add('block');
+                }
+                
+                document.querySelectorAll('.quest-card').forEach(btn => {
+                    btn.classList.remove('glow-active');
+                    if (btn.id === 'nav-' + tabId) {
+                        btn.classList.add('glow-active');
+                    }
+                });
+                
+                const mobileNav = document.getElementById('mobile-nav');
+                if (mobileNav) mobileNav.value = tabId;
+
+                document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
+
+                if (tabId === 'mod3' && !this.chartsInitialized.tradeoff) {
+                    setTimeout(() => this.renderTradeoffChart(), 100);
+                    this.chartsInitialized.tradeoff = true;
+                }
+                if (tabId === 'mod5' && !this.chartsInitialized.containment) {
+                    setTimeout(() => this.renderContainmentChart(), 100);
+                    this.chartsInitialized.containment = true;
+                }
+            },
+
+            addXp: function(amount) {
+                this.userXp += amount;
+                this.userLevel = Math.floor(this.userXp / 200) + 1;
+                
+                const xpEl = document.getElementById('user-xp');
+                if (xpEl) xpEl.innerText = this.userXp;
+                const lvlEl = document.getElementById('user-level');
+                if (lvlEl) lvlEl.innerText = this.userLevel;
+                
+                const rankTitle = this.ranks[Math.min(this.userLevel - 1, this.ranks.length - 1)];
+                const rankEl = document.getElementById('user-rank-title');
+                if (rankEl) rankEl.innerText = rankTitle;
+
+                const nextLvlXp = this.userLevel * 200;
+                const nextXpEl = document.getElementById('next-level-xp');
+                if (nextXpEl) nextXpEl.innerText = nextLvlXp;
+
+                const currentLvlBase = (this.userLevel - 1) * 200;
+                const progressInLvl = this.userXp - currentLvlBase;
+                const pct = Math.min(100, Math.round((progressInLvl / 200) * 100));
+
+                const bar = document.getElementById('xp-bar');
+                if (bar) bar.style.width = pct + '%';
+
+                this.showXpToast(`+${amount} XP Earned!`);
+            },
+
+            showXpToast: function(msg) {
+                const container = document.getElementById('xp-toast-container');
+                if (!container) return;
+
+                const toast = document.createElement('div');
+                toast.className = 'bg-emerald-500 text-slate-950 font-black px-4 py-2 rounded-xl text-xs shadow-xl border border-emerald-300 xp-pop';
+                toast.innerText = msg;
+
+                container.appendChild(toast);
+                setTimeout(() => toast.remove(), 1200);
+            },
+
+            resetProgress: function() {
+                if (confirm("Reset learning progress and earned XP?")) {
+                    this.userXp = 0;
+                    this.userLevel = 1;
+                    this.completedQuizzes = {};
+                    this.masteredCards.clear();
+                    
+                    document.getElementById('user-xp').innerText = '0';
+                    document.getElementById('user-level').innerText = '1';
+                    document.getElementById('user-rank-title').innerText = this.ranks[0];
+                    document.getElementById('xp-bar').style.width = '0%';
+                    document.getElementById('badge-count').innerText = '0 / 6';
+
+                    for (let i = 1; i <= 5; i++) {
+                        const icon = document.getElementById(`badge-icon-mod${i}`);
+                        if (icon) icon.innerText = '🔒';
+                    }
+                    this.renderFlashcard();
+                }
+            },
+
+            showNodeDetail: function(type) {
+                const out = document.getElementById('overview-node-detail');
+                if (!out) return;
+
+                if (type === 'ingestion') {
+                    out.innerHTML = `
+                        <div class="text-indigo-400 font-bold mb-1">// INGESTION & PARSING PIPELINE</div>
+                        <div>Tooling: PyPDF, Unstructured.io, BGE Embeddings, Qdrant Vector Store</div>
+                        <div>Design Pattern: Two-Stage Hybrid RAG with Cross-Encoder Reranking</div>
+                        <div>Key Benefit: Solves knowledge cutoff without expensive model fine-tuning.</div>
+                    `;
+                } else if (type === 'guardrails') {
+                    out.innerHTML = `
+                        <div class="text-rose-400 font-bold mb-1">// SECURITY GUARDRAIL EXECUTION</div>
+                        <div>Tooling: NeMo Guardrails, Presidio PII Masking, Pinecone Metadata Filtering</div>
+                        <div>Design Pattern: Isolated input/output inspection layers surrounding model execution</div>
+                        <div>Key Benefit: Blocks prompt injections and satisfies CISO security requirements.</div>
+                    `;
+                } else if (type === 'orchestrator') {
+                    out.innerHTML = `
+                        <div class="text-emerald-400 font-bold mb-1">// AGENTIC ORCHESTRATION ENGINE</div>
+                        <div>Tooling: LangGraph, FastMCP Server, OpenTelemetry, Redis State Storage</div>
+                        <div>Design Pattern: Cyclic State Machine with Human-in-the-Loop checkpoints</div>
+                        <div>Key Benefit: Achieves 70-80% automated task containment with auditability.</div>
+                    `;
+                }
+                this.addXp(15);
+            },
+
+            simTokenizer: function() {
+                const textEl = document.getElementById('token-input');
+                const modelEl = document.getElementById('token-model');
+                if (!textEl || !modelEl) return;
+
+                const text = textEl.value || '';
+                const maxCtx = parseFloat(modelEl.value || 128000);
+                
+                const tokenEst = Math.ceil(text.length / 4);
+                const pct = ((tokenEst / maxCtx) * 100).toFixed(4);
+
+                const cTokens = document.getElementById('sim-token-count');
+                const cChars = document.getElementById('sim-char-count');
+                const cPct = document.getElementById('sim-context-pct');
+
+                if (cTokens) cTokens.innerText = tokenEst;
+                if (cChars) cChars.innerText = text.length;
+                if (cPct) cPct.innerText = pct + '%';
+            },
+
+            switchPrompting: function(type) {
+                const display = document.getElementById('prompting-display');
+                if (!display) return;
+
+                const chainBtn = document.getElementById('tab-chain');
+                const totBtn = document.getElementById('tab-tot');
+                const reactBtn = document.getElementById('tab-react');
+
+                [chainBtn, totBtn, reactBtn].forEach(b => {
+                    if (b) b.className = "flex-1 py-2 text-xs font-medium rounded-lg text-slate-400";
+                });
+
+                if (type === 'chain') {
+                    if (chainBtn) chainBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white";
+                    display.innerHTML = `
+                        <div class="text-indigo-400 font-bold mb-1">// PROMPT CHAINING PATTERN</div>
+                        <div>Step 1: Document Extractor Prompt -> Extracts JSON data</div>
+                        <div>Step 2: Business Rules Validator -> Verifies deductibles</div>
+                        <div>Step 3: Response Formatter -> Outputs client response</div>
+                    `;
+                } else if (type === 'tot') {
+                    if (totBtn) totBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white";
+                    display.innerHTML = `
+                        <div class="text-amber-400 font-bold mb-1">// TREE-OF-THOUGHT (ToT) BRANCHING</div>
+                        <div>Branch A: Evaluate claim under Flood Clause (Score: High)</div>
+                        <div>Branch B: Evaluate claim under Property Damage (Score: Low)</div>
+                        <div>Decision Node: Select Branch A based on policy match.</div>
+                    `;
+                } else if (type === 'react') {
+                    if (reactBtn) reactBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white";
+                    display.innerHTML = `
+                        <div class="text-emerald-400 font-bold mb-1">// ReAct (REASON + ACT) TRACE</div>
+                        <div>Thought: I need to query the SQL database for customer records.</div>
+                        <div>Action: query_sql(id="CUST-8812")</div>
+                        <div>Observation: {"balance_usd": 14200.00}</div>
+                        <div>Final Answer: Account balance is $14,200.00.</div>
+                    `;
+                }
+            },
+
+            calcOpportunityScore: function() {
+                const checks = document.querySelectorAll('.opp-check');
+                if (!checks.length) return;
+                
+                let score = 0;
+                checks.forEach(c => {
+                    if (c.checked) score += parseInt(c.value);
+                });
+
+                const scoreText = document.getElementById('opp-score-text');
+                const scoreBar = document.getElementById('opp-score-bar');
+
+                if (scoreBar) scoreBar.style.width = `${score}%`;
+
+                if (score >= 80) {
+                    if (scoreText) scoreText.innerText = `${score}% - Prime High-ROI Opportunity`;
+                    if (scoreBar) scoreBar.className = "bg-emerald-500 h-full transition-all duration-300";
+                } else if (score >= 50) {
+                    if (scoreText) scoreText.innerText = `${score}% - Moderate Opportunity`;
+                    if (scoreBar) scoreBar.className = "bg-amber-500 h-full transition-all duration-300";
+                } else {
+                    if (scoreText) scoreText.innerText = `${score}% - High Execution Risk`;
+                    if (scoreBar) scoreBar.className = "bg-rose-500 h-full transition-all duration-300";
+                }
+            },
+
+            runToolTrace: function() {
+                const steps = [1, 2, 3, 4];
+                let current = 0;
+                
+                steps.forEach(s => {
+                    const el = document.getElementById(`trace-step-${s}`);
+                    if (el) el.classList.add('hidden');
+                });
+
+                const interval = setInterval(() => {
+                    if (current < 4) {
+                        const el = document.getElementById(`trace-step-${current+1}`);
+                        if (el) el.classList.remove('hidden');
+                        current++;
+                    } else {
+                        clearInterval(interval);
+                        this.addXp(25);
+                    }
+                }, 500);
+            },
+
+            showObjection: function(type) {
+                const box = document.getElementById('objection-answer-box');
+                if (!box) return;
+
+                if (type === 'privacy') {
+                    box.innerHTML = `
+                        <span class="text-rose-400 font-bold block mb-1">CISO Objection: Data Retention & Training Risk</span>
+                        <strong>Architect Counter:</strong> Deploy dedicated enterprise cloud endpoints (Azure OpenAI / AWS Bedrock) backed by Zero Data Retention (ZDR) guarantees. Prompts never train public weights.
+                    `;
+                } else if (type === 'injection') {
+                    box.innerHTML = `
+                        <span class="text-amber-400 font-bold block mb-1">CISO Objection: Indirect Prompt Injection</span>
+                        <strong>Architect Counter:</strong> Implement an isolated Input Guardrail layer outside the LLM that strips malicious instructions and redacts PII prior to model inference.
+                    `;
+                } else if (type === 'compliance') {
+                    box.innerHTML = `
+                        <span class="text-emerald-400 font-bold block mb-1">CISO Objection: EU AI Act Regulatory Compliance</span>
+                        <strong>Architect Counter:</strong> Maintain complete OpenTelemetry auditing logs, document-level RBAC pre-filters, and explicit Human-in-the-Loop approval checkpoints for high-risk actions.
+                    `;
+                }
+                this.addXp(25);
+            },
+
+            calcTco: function() {
+                const qEl = document.getElementById('gtm-q');
+                const htEl = document.getElementById('gtm-ht');
+                const rateEl = document.getElementById('gtm-rate');
+                const containEl = document.getElementById('gtm-contain');
+                const tokensEl = document.getElementById('gtm-tokens');
+                
+                if (!qEl || !htEl || !rateEl || !containEl || !tokensEl) return;
+
+                const q = parseFloat(qEl.value || 0);
+                const ht = parseFloat(htEl.value || 0);
+                const rate = parseFloat(rateEl.value || 0);
+                const contain = (parseFloat(containEl.value || 0)) / 100;
+                const tokens = parseFloat(tokensEl.value || 0);
+
+                const annualTasks = q * 250;
+                const autoTasks = annualTasks * contain;
+                const hrsSaved = (autoTasks * ht) / 60;
+                const laborSaved = hrsSaved * rate;
+
+                const annualTokens = autoTasks * tokens;
+                const tokenCost = (annualTokens / 1000000) * 2.50;
+
+                const roi = tokenCost > 0 ? (laborSaved / tokenCost).toFixed(1) : 0;
+
+                const resLabor = document.getElementById('res-labor');
+                const resToken = document.getElementById('res-token');
+                const resRoi = document.getElementById('res-roi');
+
+                if (resLabor) resLabor.innerText = `$${Math.round(laborSaved).toLocaleString()}`;
+                if (resToken) resToken.innerText = `$${Math.round(tokenCost).toLocaleString()}`;
+                if (resRoi) resRoi.innerText = `${roi}x`;
+            },
+
+            // Flashcard Controller
+            renderFlashcard: function() {
+                const card = this.flashcards[this.currentCardIdx];
+                if (!card) return;
+
+                const idxLabel = document.getElementById('card-index-label');
+                const frontEl = document.getElementById('card-front-text');
+                const backEl = document.getElementById('card-back-text');
+                const progressEl = document.getElementById('flashcard-progress-text');
+                const btnMastered = document.getElementById('btn-mastered');
+
+                if (idxLabel) idxLabel.innerText = `Card ${this.currentCardIdx + 1} of ${this.flashcards.length}`;
+                if (frontEl) frontEl.innerText = card.f;
+                if (backEl) backEl.innerText = card.b;
+                if (progressEl) progressEl.innerText = `${this.masteredCards.size} / ${this.flashcards.length} Mastered`;
+
+                if (btnMastered) {
+                    if (this.masteredCards.has(this.currentCardIdx)) {
+                        btnMastered.className = "px-5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-lg";
+                        btnMastered.innerText = "✓ Mastered";
+                    } else {
+                        btnMastered.className = "px-5 py-2 bg-emerald-950/60 border border-emerald-800 text-emerald-300 rounded-xl text-xs font-bold hover:bg-emerald-900/60 transition";
+                        btnMastered.innerText = "🌟 Mark Mastered (+10 XP)";
+                    }
+                }
+
+                // Reset flip state
+                this.cardFlipped = false;
+                if (frontEl) frontEl.classList.remove('hidden');
+                if (backEl) backEl.classList.add('hidden');
+            },
+
+            flipCard: function() {
+                this.cardFlipped = !this.cardFlipped;
+                const frontEl = document.getElementById('card-front-text');
+                const backEl = document.getElementById('card-back-text');
+
+                if (this.cardFlipped) {
+                    if (frontEl) frontEl.classList.add('hidden');
+                    if (backEl) backEl.classList.remove('hidden');
+                } else {
+                    if (frontEl) frontEl.classList.remove('hidden');
+                    if (backEl) backEl.classList.add('hidden');
+                }
+            },
+
+            nextCard: function() {
+                this.currentCardIdx = (this.currentCardIdx + 1) % this.flashcards.length;
+                this.renderFlashcard();
+            },
+
+            prevCard: function() {
+                this.currentCardIdx = (this.currentCardIdx - 1 + this.flashcards.length) % this.flashcards.length;
+                this.renderFlashcard();
+            },
+
+            toggleMastery: function() {
+                if (this.masteredCards.has(this.currentCardIdx)) {
+                    this.masteredCards.delete(this.currentCardIdx);
+                } else {
+                    this.masteredCards.add(this.currentCardIdx);
+                    this.addXp(10);
+                }
+                this.renderFlashcard();
+            },
+
+            // Solution Wizard Generator
+            generateBlueprint: function() {
+                const lat = document.getElementById('wiz-latency')?.value;
+                const sec = document.getElementById('wiz-security')?.value;
+                const comp = document.getElementById('wiz-complexity')?.value;
+                const data = document.getElementById('wiz-data')?.value;
+                const out = document.getElementById('wizard-output');
+
+                if (!out) return;
+                out.classList.remove('hidden');
+
+                out.innerHTML = `
+                    <div class="text-amber-400 font-bold mb-1">// TAILORED SOLUTION ARCHITECTURE RECOMMENDATION</div>
+                    <div>1. Orchestration Engine: ${comp === 'multiagent' ? 'LangGraph Stateful Cyclic Graph with HITL Checkpoints' : 'LangChain Single-Pass Pipeline'}</div>
+                    <div>2. Retrieval Strategy: ${data === 'unstructured' ? 'Two-Stage Hybrid Vector + BM25 Search with Cross-Encoder Reranking' : 'GraphRAG (Knowledge Graphs) + SQL Function Calling'}</div>
+                    <div>3. Deployment Target: ${sec === 'vpc' ? 'Dedicated Cloud VPC (AWS Bedrock / Azure AI) with Customer-Managed KMS' : 'Enterprise Public Cloud Endpoints with Zero Data Retention'}</div>
+                    <div>4. Latency SLA Budget: ${lat === 'realtime' ? 'Allocated < 1.5s (Streaming Tokens + Fast Model Routing)' : 'Asynchronous Worker Queue with Event Listener Notification'}</div>
+                `;
+                this.addXp(25);
+            },
+
+            // Exam Renderer & Handler
+            renderExam: function() {
+                const container = document.getElementById('exam-container');
+                if (!container) return;
+
+                container.innerHTML = this.examQuestions.map((q, qIdx) => `
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-3">
+                        <div class="font-bold text-white text-xs flex items-center gap-2">
+                            <span class="text-emerald-400 font-mono">Q${qIdx + 1}.</span> ${q.q}
+                        </div>
+                        <div class="space-y-2 text-xs">
+                            ${q.options.map((opt, optIdx) => `
+                                <label class="flex items-center gap-3 p-3 bg-slate-950/80 rounded-xl border border-slate-800 hover:border-slate-700 cursor-pointer">
+                                    <input type="radio" name="exam_q_${qIdx}" value="${optIdx}" class="text-emerald-500">
+                                    <span class="text-slate-300">${opt}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('') + `
+                    <button onclick="window.app.submitExam()" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-indigo-600 hover:from-emerald-400 hover:to-indigo-500 text-slate-950 font-black rounded-xl text-xs uppercase tracking-wider transition shadow-xl">
+                        Submit Final Architecture Exam (+200 XP)
+                    </button>
+                    <div id="exam-result-box" class="p-4 rounded-xl border hidden text-xs font-bold text-center"></div>
+                `;
+            },
+
+            submitExam: function() {
+                let score = 0;
+                this.examQuestions.forEach((q, idx) => {
+                    const selected = document.querySelector(`input[name="exam_q_${idx}"]:checked`);
+                    if (selected && parseInt(selected.value) === q.correct) {
+                        score++;
+                    }
+                });
+
+                const pct = Math.round((score / this.examQuestions.length) * 100);
+                const resBox = document.getElementById('exam-result-box');
+                if (!resBox) return;
+
+                resBox.classList.remove('hidden');
+
+                if (pct >= 80) {
+                    resBox.className = "p-5 rounded-2xl bg-emerald-950/80 border-2 border-emerald-500 text-emerald-200 text-center space-y-2";
+                    resBox.innerHTML = `
+                        <div class="text-2xl">🏆 CERTIFICATION PASSED! (${pct}%)</div>
+                        <p class="text-xs text-slate-300">Official Credential Issued: <strong>Certified Enterprise GenAI Architect</strong></p>
+                        <div class="text-[10px] font-mono text-emerald-400">VERIFICATION ID: GAISA-2026-X9921 • ISSUED: ${new Date().toLocaleDateString()}</div>
+                    `;
+                    this.addXp(200);
+
+                    const examBadge = document.getElementById('badge-icon-exam');
+                    if (examBadge) examBadge.innerText = '🥇';
+                } else {
+                    resBox.className = "p-4 rounded-xl bg-rose-950/80 border border-rose-500 text-rose-200 text-center";
+                    resBox.innerText = `Score: ${pct}%. Score >= 80% required for certification. Review materials and try again!`;
+                }
+            },
+
+            // Module Quiz Handler
+            submitQuiz: function(modId, correctOption) {
+                if (this.completedQuizzes[modId]) {
+                    alert("You have already completed this quest!");
+                    return;
+                }
+
+                const selected = document.querySelector(`input[name="q${modId}"]:checked`);
+                const resDiv = document.getElementById(`quiz-mod${modId}-result`);
+                if (!resDiv) return;
+
+                resDiv.classList.remove('hidden');
+
+                if (selected && parseInt(selected.value) === correctOption) {
+                    resDiv.className = "mt-3 text-xs p-3 rounded-xl bg-emerald-950/80 border border-emerald-500 text-emerald-200 font-bold";
+                    resDiv.innerText = "✓ Correct Answer! Quest Complete. You earned +100 XP!";
+                    
+                    this.addXp(100);
+                    this.completedQuizzes[modId] = true;
+
+                    const icon = document.getElementById(`badge-icon-mod${modId}`);
+                    if (icon) icon.innerText = '✅';
+
+                    const completedCount = Object.keys(this.completedQuizzes).length;
+                    const badgeCountEl = document.getElementById('badge-count');
+                    if (badgeCountEl) badgeCountEl.innerText = `${completedCount} / 6`;
+                } else {
+                    resDiv.className = "mt-3 text-xs p-3 rounded-xl bg-rose-950/80 border border-rose-500 text-rose-200 font-bold";
+                    resDiv.innerText = "✗ Incorrect. Review the quest materials and try again.";
+                }
+            },
+
+            renderTradeoffChart: function() {
+                const ctxEl = document.getElementById('tradeoffChart');
+                if (!ctxEl) return;
+                const ctx = ctxEl.getContext('2d');
+                new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Accuracy & Grounding', 'Execution Speed', 'Cost Efficiency'],
+                        datasets: [
+                            {
+                                label: 'Multi-hop RAG + Evaluator Agent',
+                                data: [0.95, 0.35, 0.40],
+                                backgroundColor: 'rgba(99, 102, 241, 0.25)',
+                                borderColor: '#6366f1',
+                                pointBackgroundColor: '#6366f1'
+                            },
+                            {
+                                label: 'Single-Pass Vector RAG',
+                                data: [0.65, 0.90, 0.85],
+                                backgroundColor: 'rgba(16, 185, 129, 0.25)',
+                                borderColor: '#10b981',
+                                pointBackgroundColor: '#10b981'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                min: 0, max: 1,
+                                angleLines: { color: '#334155' },
+                                grid: { color: '#334155' },
+                                pointLabels: { font: { size: 10, family: 'Plus Jakarta Sans' }, color: '#94a3b8' },
+                                ticks: { display: false }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: '#cbd5e1', font: { size: 10, family: 'Plus Jakarta Sans' } }
+                            }
+                        }
+                    }
+                });
+            },
+
+            renderContainmentChart: function() {
+                const ctxEl = document.getElementById('containmentChart');
+                if (!ctxEl) return;
+                const ctx = ctxEl.getContext('2d');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Automated Containment', 'Human Escalation (HITL)'],
+                        datasets: [{
+                            data: [76, 24],
+                            backgroundColor: ['#10b981', '#f43f5e'],
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '74%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: '#cbd5e1', font: { size: 10, family: 'Plus Jakarta Sans' }, usePointStyle: true }
+                            },
+                            tooltip: { callbacks: { label: (c) => ` ${c.label}: ${c.raw}%` } }
+                        }
+                    }
+                });
+            }
+        };
+
+        window.app = app;
+
+        document.querySelectorAll('.opp-check').forEach(c => {
+            c.addEventListener('change', () => window.app.calcOpportunityScore());
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+    </script>
+</body>
+</html>
